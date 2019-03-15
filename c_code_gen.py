@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 
+indentChar = ' '
+
 class Code():
     def __init__(self):
         self.elements = []
@@ -330,6 +332,59 @@ class IfStatement:
         lines = []
         lines.append('')
 
+class Function:
+    def __init__(self, name, ret_type, parameters=None, block=None):
+        self._name = name
+        self._ret_type = ret_type
+        self._parameters = [] if parameters is None else list(parameters)
+        self._block = block if block is not None else Block()
+        self._static = False
+
+    def __str__(self):
+        _str = ''
+        _str += 'static ' if self.static is True else ''
+
+        _str += '%s %s(%s) \n' % (self._ret_type, self._name, ', '.join(self._parameters))
+        _str += str(self._block)
+        return _str
+
+    @property
+    def static(self):
+        return self._static
+
+    @static.setter
+    def static(self, value:bool):
+        if isinstance(value, bool) is False:
+            raise ValueError('static property expect bool type')
+        self._static = value
+
+    def add_parameter(self, parameters):
+        self._parameters.extend(parameters)
+
+    @property
+    def block(self):
+        return self._block
+
+    @block.setter
+    def block(self, block):
+        if isinstance(block, Block) is False:
+            raise ValueError('block property expect Block object')
+        self._block = block
+
+    def addline(self, line):
+        self._block.append(line)
+
+
+class FuncCall():
+    def __init__(self, name, args=None):
+        self._name = name
+        self._args = [] if args is None else list(args)
+
+    def __str__(self):
+        _str = '%s(%s)' % (self._name, ', '.join(str(x) for x in self._args))
+        return _str
+
+
 if __name__ == '__main__':
     cfile = CFile('test.ct')
     code = cfile.code
@@ -345,4 +400,19 @@ if __name__ == '__main__':
     iter = ForIter('a = 1', 'a < 10', 'a++')
     iter.addline(Statement('code = 0'))
     code.append(iter)
+
+    code.append(Blank(5))
+
+    func = Function('func', 'int')
+    func.block = Block()
+    func.static = True
+    func.add_parameter(['int a', 'int b'])
+    func.block.append(Statement('return 0'))
+
+    fc = FuncCall('func', ['a, b, d'])
+    code.append(func)
+
+    code.append(Statement(fc))
+
+
     print(cfile)
