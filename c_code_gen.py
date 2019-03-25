@@ -44,6 +44,7 @@ class _File(object):
 
     def generate(self):
         with open(self.path, 'w') as f:
+            print(self.code)
             f.write(str(self.code))
 
 class CFile(_File):
@@ -219,9 +220,27 @@ class Struct:
     def __init__(self, name, block=None):
         self.block = block if block is not None else Block()
         self.name = name
+        self._typedef = False
 
     def __str__(self):
-        return '\n'.join(self.lines())
+        _str = ''
+        _suffix = ''
+        if self._typedef is True:
+            _str += 'typedef struct {\n'
+            _suffix = self.name
+        else:
+            _str += 'struct %s {\n' % (self.name)
+        _str += ',\n'.join(self.block.code.lines())
+        _str += '\n} %s' % (_suffix)
+        return _str
+
+    @property
+    def typedef(self):
+        return self._typedef
+
+    @typedef.setter
+    def typedef(self, set: bool):
+        self._typedef = set
 
     def append(self, type, name):
         self.block.append('%s %s' % (type, name))
@@ -230,31 +249,37 @@ class Struct:
         for type, name in list:
             self.append(type, name)
 
-    def lines(self):
-        lines = []
-        lines.append('struct %s' % (self.name))
-        lines.extend(self.block.lines())
-        return lines
-
 class Enum:
     def __init__(self, name, block=None):
         self.block = block if block is not None else Block()
         self.name = name
+        self._typedef = False
 
     def __str__(self):
-        return '\n'.join(self.lines())
+        _str = ''
+        _suffix = ''
+        if self._typedef is True:
+            _str += 'typedef enum {\n'
+            _suffix = self.name
+        else :
+            _str += 'enum %s {\n' % (self.name)
+        _str += ',\n'.join(self.block.code.lines())
+        _str += '\n} %s' % (_suffix)
+        return _str
+
+    @property
+    def typedef(self):
+        return self._typedef
+
+    @typedef.setter
+    def typedef(self, set: bool):
+        self._typedef = set
 
     def append(self, value):
         self.block.append(str(value))
 
     def append_with_init(self, value, init):
-        self.append('%s = %s' % value, init)
-
-    def lines(self):
-        lines = []
-        lines.append('enum %s' % self.name)
-        lines.extend(self.block.lines())
-        return lines
+        self.append('%s = %s' % (value, init))
 
 class Statement:
     def __init__(self, state):
@@ -384,35 +409,23 @@ class FuncCall():
         _str = '%s(%s)' % (self._name, ', '.join(str(x) for x in self._args))
         return _str
 
+    def add_arg(self, arg):
+        self._args.append(arg)
+
 
 if __name__ == '__main__':
-    cfile = CFile('test.ct')
-    code = cfile.code
+    e = Enum('Test')
+    e.append_with_init('E1', '1')
+    e.append_with_init('E2', 2)
+    e.append_with_init('E3', '3')
+    e.typedef = True
 
-    #header
-    code.append(Include('stdio.h', True))
+    print(e)
 
-    block = Block()
-    block.append(Statement('return 1'))
-    if1 = IfStatement('a > b', block)
-    if1.append_elif('a == b', block)
-    code.append(if1)
-    iter = ForIter('a = 1', 'a < 10', 'a++')
-    iter.addline(Statement('code = 0'))
-    code.append(iter)
+    s = Struct('Test')
+    s.typedef = True
+    s.append('int', 'a')
+    s.append('int', 'b')
+    s.append('int', 'c')
+    print(s)
 
-    code.append(Blank(5))
-
-    func = Function('func', 'int')
-    func.block = Block()
-    func.static = True
-    func.add_parameter(['int a', 'int b'])
-    func.block.append(Statement('return 0'))
-
-    fc = FuncCall('func', ['a, b, d'])
-    code.append(func)
-
-    code.append(Statement(fc))
-
-
-    print(cfile)
