@@ -44,8 +44,7 @@ class _File(object):
 
     def generate(self):
         with open(self.path, 'w') as f:
-            print(self.code)
-            f.write(str(self.code))
+            f.write(str(self))
 
 class CFile(_File):
     def __init__(self, path):
