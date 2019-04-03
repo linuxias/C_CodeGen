@@ -218,7 +218,7 @@ class Typedef:
 
 class Struct:
     def __init__(self, name, block=None):
-        self.block = block if block is not None else Block()
+        self.block = block or Block()
         self.name = name
         self._typedef = False
 
@@ -251,7 +251,7 @@ class Struct:
 
 class Enum:
     def __init__(self, name, block=None):
-        self.block = block if block is not None else Block()
+        self.block = block or Block()
         self.name = name
         self._typedef = False
 
@@ -301,7 +301,7 @@ class Include:
 class ForIter:
     def __init__(self, init='', expression='', increment='', block=None):
         self.iter = 'for (%s;%s;%s)' % (init, expression, increment)
-        self.block = block if block is not None else Block()
+        self.block = block or Block()
 
     def __str__(self):
         _str = ''
@@ -362,7 +362,7 @@ class Function:
         self._name = name
         self._ret_type = ret_type
         self._parameters = [] if parameters is None else list(parameters)
-        self._block = block if block is not None else Block()
+        self._block = block or Block()
         self._static = False
 
     def __str__(self):
