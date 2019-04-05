@@ -229,8 +229,8 @@ class Struct:
             _suffix = self.name
         else:
             _str += 'struct %s {\n' % (self.name)
-        _str += ',\n'.join(self.block.code.lines())
-        _str += '\n} %s' % (_suffix)
+        _str += ';\n'.join(self.block.code.lines())
+        _str += ';\n} %s' % (_suffix)
         return _str
 
     @property
