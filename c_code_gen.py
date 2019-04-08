@@ -1,8 +1,5 @@
 import os
-import sys
-import logging
-
-indentChar = ' '
+import re
 
 class Code():
     def __init__(self):
@@ -61,7 +58,8 @@ class HFile(_File):
         super().__init__(path)
         _basename = os.path.basename(self.path)
         _splitname = os.path.splitext(_basename)[0].upper()
-        self.guard = "__" + _splitname + "_H__"
+        _guard = re.findall('[A-Z][^A-Z]*', _splitename)
+        self.guard = "__" + '_'.join(_guard).upper() + "_H__"
 
     def __str__(self):
         _str = ''
