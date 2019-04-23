@@ -325,7 +325,7 @@ class _IfElse():
 
 class IfStatement:
     def __init__(self, condition, block):
-        self.else_statement = None
+        self.else_block = None
 
         _if = _IfElse(condition, block)
         self.statements = []
@@ -339,8 +339,8 @@ class IfStatement:
         for elif_state in self.statements[1:]:
             _str += 'else if (%s) ' % elif_state.condition
             _str += str(elif_state.block) + '\n'
-        if self.else_statement is not None:
-            _str += 'else ' + str(self.else_statement)
+        if self.else_block is not None:
+            _str += 'else ' + str(self.else_block)
         return _str
 
     def append_elif(self, condition, block):
