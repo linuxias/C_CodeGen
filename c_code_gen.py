@@ -276,7 +276,8 @@ class Enum:
         self.block.append(str(value))
 
     def append_with_init(self, value, init):
-        self.append('%s = %s' % (value, init))
+        self.blockappend('%s = %s' % (value, init))
+
 
 class Union:
     def __init__(self, name, block=None):
@@ -289,10 +290,10 @@ class Union:
         _suffix = ''
         if self._typedef is True:
             _str += 'typedef union {\n'
-            _suffix = self.name
+            _suffix = self._name
         else:
             _str += 'union %s {\n' % (self.name)
-        _str += ';\n'.join(self.block.code.lines())
+        _str += ';\n'.join(self._block.code.lines())
         _str += ';\n} %s' % (_suffix)
         return _str
 
@@ -305,11 +306,11 @@ class Union:
         self._typedef = set
 
     def append(self, value):
-        self.block.append(value)
+        self._block.append(value)
 
-    def append(self, type, name):
-        self.block.append(str(type) + ' ' + str(name))
-        
+    def append_with_init(self, value, init):
+        self._block.append('%s = %s' % (value, init))
+
 class Statement:
     def __init__(self, state):
         self.state = state
