@@ -21,6 +21,7 @@ class Code():
 
     def append(self, element):
         self.elements.append(element)
+        return self
 
     def extend(self, element):
         self.elements.extend(element)
@@ -46,9 +47,28 @@ class _File(object):
 class CFile(_File):
     def __init__(self, path):
         super().__init__(path)
+        self.include = []
+        self.extern = []
+
+    def add_include(self, include):
+        self.include.append(include)
+
+    def add_extern(self, extern):
+        self.extern.append(extern)
 
     def __str__(self):
-        return str(self.code)
+        _str = ''
+        for _include in self.include:
+            _str += _include.__str__() + '\n'
+        _str += '\n'
+
+        for _extern in self.extern:
+            _str += _extern.__str__() + '\n'
+        _str += '\n'
+
+        _str += str(self.code)
+        _str += '\n'
+        return _str
 
     def lines(self):
         return self.code.lines()
@@ -57,9 +77,9 @@ class HFile(_File):
     def __init__(self, path):
         super().__init__(path)
         _basename = os.path.basename(self.path)
-        _splitname = os.path.splitext(_basename)[0].upper()
-        _guard = re.findall('[A-Z][^A-Z]*', _splitename)
-        self.guard = "__" + '_'.join(_guard).upper() + "_H__"
+        _splitname = os.path.splitext(_basename)[0]
+        _guard = re.findall('[A-Z][^A-Z]*', _splitname)
+        self.guard = '__' + '_'.join(_guard).upper() + '_H__'
 
     def __str__(self):
         _str = ''
@@ -143,44 +163,9 @@ class Variable():
     def setprefix(self, prefix):
         self.type = str(prefix) + ' ' +self.type
 
-    def isvalidtype(self, type):
-        types = ('char',
-                 'signed char',
-                 'unsigned char',
-                 'short',
-                 'short int',
-                 'signed short',
-                 'signed short int',
-                 'unsigned short',
-                 'unsigned short int',
-                 'int',
-                 'signed',
-                 'signed int',
-                 'unsigned',
-                 'unsigned int',
-                 'long',
-                 'long int',
-                 'signed long',
-                 'signed long int',
-                 'unsigned long',
-                 'unsigned long int',
-                 'long long',
-                 'long long int',
-                 'signed long long',
-                 'signed long long int',
-                 'unsigned long long',
-                 'unsigned long long int',
-                 'float',
-                 'double',
-                 'long double'
-                 )
-        return type in types
 
 class Array(Variable):
     def __init__(self, type, name, *args):
-        if super().isvalidtype(type) is False:
-            logging.error('wrong type : %s', str(type))
-            exit(-1)
         super().__init__(type, name)
         self.index = 0
         self.data = []
@@ -195,9 +180,6 @@ class Array(Variable):
 
 class Pointer(Variable):
     def __init__(self, type, name, initialization=None):
-        if super().isvalidtype(type) is False:
-            logging.error('wrong type : %s', str(type))
-            exit(-1)
         super().__init__(type, name, initialization)
 
     def __str__(self):
@@ -215,7 +197,7 @@ class Typedef:
 
 class Struct:
     def __init__(self, name, block=None):
-        self.block = block or Block()
+        self.block = block if block is not None else Block()
         self.name = name
         self._typedef = False
 
@@ -239,16 +221,53 @@ class Struct:
     def typedef(self, set: bool):
         self._typedef = set
 
-    def append(self, type, name):
-        self.block.append('%s %s' % (type, name))
+    def append(self, value):
+        if isinstance(value, list):
+            self.append_list(value)
+        else:
+            self.block.append('%s' % value)
 
-    def append_list(self, list):
-        for type, name in list:
-            self.append(type, name)
+    def append_list(self, value_list):
+        for value in value_list:
+            self.append(value)
+
+
+class Union:
+    def __init__(self, name, block=None):
+        self._block = block if block is not None else Block()
+        self._name = name
+        self._typedef = False
+
+    def __str__(self):
+        _str = ''
+        _suffix = ''
+        if self._typedef is True:
+            _str += 'typedef union {\n'
+            _suffix = self.name
+        else:
+            _str += 'union %s {\n' % (self.name)
+        _str += ';\n'.join(self.block.code.lines())
+        _str += ';\n} %s' % (_suffix)
+        return _str
+
+    @property
+    def typedef(self):
+        return self._typedef
+
+    @typedef.setter
+    def typedef(self, set: bool):
+        self._typedef = set
+
+    def append(self, value):
+        self.block.append(value)
+
+    def append(self, type, name):
+        self.block.append(str(type) + ' ' + str(name))
+
 
 class Enum:
     def __init__(self, name, block=None):
-        self.block = block or Block()
+        self.block = block if block is not None else Block()
         self.name = name
         self._typedef = False
 
@@ -276,41 +295,9 @@ class Enum:
         self.block.append(str(value))
 
     def append_with_init(self, value, init):
-        self.blockappend('%s = %s' % (value, init))
+        self.append('%s = %s' % (value, init))
 
-
-class Union:
-    def __init__(self, name, block=None):
-        self._block = block if block is not None else Block()
-        self._name = name
-        self._typedef = False
-
-    def __str__(self):
-        _str = ''
-        _suffix = ''
-        if self._typedef is True:
-            _str += 'typedef union {\n'
-            _suffix = self._name
-        else:
-            _str += 'union %s {\n' % (self.name)
-        _str += ';\n'.join(self._block.code.lines())
-        _str += ';\n} %s' % (_suffix)
-        return _str
-
-    @property
-    def typedef(self):
-        return self._typedef
-
-    @typedef.setter
-    def typedef(self, set: bool):
-        self._typedef = set
-
-    def append(self, value):
-        self._block.append(value)
-
-    def append_with_init(self, value, init):
-        self._block.append('%s = %s' % (value, init))
-
+        
 class Statement:
     def __init__(self, state):
         self.state = state
@@ -328,10 +315,17 @@ class Include:
         else:
             return '#include "%s"' % self.header
 
+class Extern:
+    def __init__(self, extern):
+        self.extern = extern
+
+    def __str__(self):
+        return 'extern ' + str(self.extern) +';'
+
 class ForIter:
     def __init__(self, init='', expression='', increment='', block=None):
-        self.iter = 'for (%s;%s;%s)' % (init, expression, increment)
-        self.block = block or Block()
+        self.iter = 'for(%s;%s;%s)' % (init, expression, increment)
+        self.block = block if block is not None else Block()
 
     def __str__(self):
         _str = ''
@@ -358,7 +352,7 @@ class _IfElse():
 
 class IfStatement:
     def __init__(self, condition, block):
-        self.else_block = None
+        self.else_statement = None
 
         _if = _IfElse(condition, block)
         self.statements = []
@@ -372,8 +366,8 @@ class IfStatement:
         for elif_state in self.statements[1:]:
             _str += 'else if (%s) ' % elif_state.condition
             _str += str(elif_state.block) + '\n'
-        if self.else_block is not None:
-            _str += 'else ' + str(self.else_block)
+        if self.else_statement is not None:
+            _str += 'else ' + str(self.else_statement)
         return _str
 
     def append_elif(self, condition, block):
@@ -381,7 +375,7 @@ class IfStatement:
         self.statements.append(_if)
 
     def set_else(self, block):
-        self.else_block = block
+        self.else_statement = block
 
     def lines(self):
         lines = []
@@ -392,15 +386,15 @@ class Function:
         self._name = name
         self._ret_type = ret_type
         self._parameters = [] if parameters is None else list(parameters)
-        self._block = block or Block()
+        self._block = block if block is not None else Block()
         self._static = False
 
     def __str__(self):
         _str = ''
         _str += 'static ' if self.static is True else ''
-
         _str += '%s %s(%s) \n' % (self._ret_type, self._name, ', '.join(self._parameters))
         _str += str(self._block)
+        _str += '\n'
         return _str
 
     @property
@@ -442,6 +436,55 @@ class FuncCall():
     def add_arg(self, arg):
         self._args.append(arg)
 
+class Switch():
+    def __init__(self, arg, block = None):
+        self._arg = arg
+        self._block = block if block is not None else Block()
+        self._case = []
+
+    def __str__(self):
+        _str = ''
+        _str += 'switch(%s)\n'% self._arg + '{'
+        for _case in self._case:
+            _str += _case.__str__()
+        _str += '}'
+        return _str
+
+    def add_case(self, case):
+        self._case.append(case)
+
+    @property
+    def block(self):
+        return self._block
+
+    @block.setter
+    def block(self, block):
+        if isinstance(block, Block) is False:
+            raise ValueError('block property expect Block object')
+        self._block = block
+
+    def addline(self, line):
+        self._block.append(line)
+
+class Case():
+    def __init__(self, arg, code=None):
+        self._arg = arg
+        self._code = code if code is not None else Code()
+
+    def __str__(self):
+        _str = ''
+        _str += 'case %s:\n'% self._arg
+        _str += str(self._code)
+        _str += 'break;\n\n'
+        return _str
+
+    @property
+    def block(self):
+        return self._block
+
+    def addline(self, line):
+        self._code.append(line)
+
 
 if __name__ == '__main__':
     e = Enum('Test')
@@ -454,8 +497,10 @@ if __name__ == '__main__':
 
     s = Struct('Test')
     s.typedef = True
-    s.append('int', 'a')
-    s.append('int', 'b')
-    s.append('int', 'c')
+    s.append('int a')
+    s.append('int b')
+    s.append('int c')
+
     print(s)
+
 
