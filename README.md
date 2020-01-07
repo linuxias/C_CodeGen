@@ -20,3 +20,16 @@ c_code.append(main_func)
 cfile.generator()
 
 ```
+
+#### Result : test.c
+```c
+#include <stdio.h>
+
+int main()
+{
+int a;
+a = 10;
+printf('a is %d/\n', a);
+}
+
+```

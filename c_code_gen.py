@@ -430,7 +430,7 @@ class FuncCall():
         self._args = [] if args is None else list(args)
 
     def __str__(self):
-        _str = '%s(%s)' % (self._name, ', '.join(str(x) for x in self._args))
+        _str = '%s(%s);' % (self._name, ', '.join(str(x) for x in self._args))
         return _str
 
     def add_arg(self, arg):
@@ -484,23 +484,4 @@ class Case():
 
     def addline(self, line):
         self._code.append(line)
-
-
-if __name__ == '__main__':
-    e = Enum('Test')
-    e.append_with_init('E1', '1')
-    e.append_with_init('E2', 2)
-    e.append_with_init('E3', '3')
-    e.typedef = True
-
-    print(e)
-
-    s = Struct('Test')
-    s.typedef = True
-    s.append('int a')
-    s.append('int b')
-    s.append('int c')
-
-    print(s)
-
 
