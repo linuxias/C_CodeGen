@@ -1,5 +1,5 @@
 import sys
-import c_code_gen as cg
+import ccodegen as cg
 
 def check_version():
     try:

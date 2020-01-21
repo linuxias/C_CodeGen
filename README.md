@@ -1,5 +1,6 @@
-# C_CodeGen
+# ccodegen
 
+This is a ccodegen package. 
 
 ```python
 import c_code_gen as cg
