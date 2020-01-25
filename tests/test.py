@@ -10,5 +10,11 @@ class TestCodeGen(unittest.TestCase):
     def test_endif(self):
         self.assertEqual(str(cg.Endif()), '#endif')
 
+    def test_cfile(self):
+        cfile = cg.CFile('test.c')
+        cfile.add_include('stdio.h')
+        cfile.add_include('stdlib.h')
+        cfile.generate()
+
 if __name__ == '__main__':
     unittest.main()

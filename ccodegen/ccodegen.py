@@ -59,11 +59,11 @@ class CFile(_File):
     def __str__(self):
         _str = ''
         for _include in self.include:
-            _str += _include.__str__() + '\n'
+            _str += '#include <' + _include.__str__() + '>\n'
         _str += '\n'
 
         for _extern in self.extern:
-            _str += _extern.__str__() + '\n'
+            _str += 'extern ' + _extern.__str__() + '\n'
         _str += '\n'
 
         _str += str(self.code)
