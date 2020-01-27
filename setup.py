@@ -1,6 +1,6 @@
-from setuptools import setup
+import setuptools
 
-setup(
+setuptools.setup(
     name='ccodegen',
     version='0.1',
     description="C code generator",
@@ -8,6 +8,7 @@ setup(
     author_email="linuxias@gmail.com",
     license="MIT",
     url="https://github.com/linuxias/C_CodeGen",
+    packages=setuptools.find_packages(),
     keywords=["C", "Generator"],
     classifiers=[
         "Programming Language :: Python",
