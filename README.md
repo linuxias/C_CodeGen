@@ -1,9 +1,18 @@
 # ccodegen
 
+### How to install
+
+```bash
+pip install ccodegen
+```
+
+### Example
+
 This is a ccodegen package. 
 
+#### Code
 ```python
-import c_code_gen as cg
+import ccodegen as cg
 
 cfile = cg.CFile('test.c')
 c_code = cfile.code
