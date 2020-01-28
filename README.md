@@ -15,19 +15,17 @@ This is a ccodegen package.
 import ccodegen as cg
 
 cfile = cg.CFile('test.c')
+cfile.add_include(cg.Include('stdio.h', True))
+
 c_code = cfile.code
 
-c_code.append(cg.Include('stdio.h', True))
-
-main_func = c_code.Function('main', 'int')
+main_func = cg.Function('main', 'int')
 main_func.block = cg.Block()
-main_func.block.append(Statement(Variable('int', 'a')))
-main_func.block.append(Statement('a = 10')
-main_func.block.append(FuncCall('printf', '"a is %d\n"', 'a')
-
+main_func.block.append(cg.Statement(cg.Variable('int', 'a')))
+main_func.block.append(cg.Statement('a = 10'))
+main_func.block.append(cg.FuncCall('printf', [repr("a is %d\n"), 'a']))
 c_code.append(main_func)
-
-cfile.generator()
+cfile.generate()
 
 ```
 
